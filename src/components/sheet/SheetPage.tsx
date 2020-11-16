@@ -6,7 +6,7 @@ import './SheetPage.scss';
 
 export const SheetPage = () => {
 
-  const startX = 60;
+  const startX = 80;
   const spaceX = 30;
   const muteColor = 'black';
   const playColor = 'red';

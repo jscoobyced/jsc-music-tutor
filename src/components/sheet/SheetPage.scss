@@ -7,4 +7,12 @@
   svg {
     display: block;
   }
+
+  .music-sheet {
+    width: 80%;
+    margin: 20px;
+    background-color: $surface;
+    display: flex;
+    justify-content: center;
+  }
 }
