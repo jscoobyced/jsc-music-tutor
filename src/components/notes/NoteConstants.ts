@@ -1,14 +1,15 @@
-import React from 'react';
 
-export interface NoteProps {
+export interface NoteData {
   cX: number;
   cY: number;
+  rX?: number;
+  rY?: number;
   color: string;
+  frequency?: number;
+  soundFile?: string;
 }
 
 export const NoteConstant = {
-  rX: 6,
-  rY: 4,
   Do5: {
     y: 100,
     f: 523
@@ -76,13 +77,3 @@ export const Notes6Constant = [NoteConstant.Do6,
 NoteConstant.Re6, NoteConstant.Mi6, NoteConstant.Fa6,
 NoteConstant.Sol6, NoteConstant.La6,
 NoteConstant.Si6];
-
-export const Note = (props: NoteProps) => {
-
-  return (
-    <ellipse cx={props.cX} cy={props.cY}
-      rx={NoteConstant.rX} ry={NoteConstant.rY}
-      fill={props.color}
-      stroke={props.color} strokeWidth='1' />
-  );
-}

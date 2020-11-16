@@ -1,6 +1,6 @@
 import React from 'react';
 import './App.scss';
-import { SheetPage } from './components/SheetPage';
+import { SheetPage } from './components/sheet/SheetPage';
 
 export const App = () => {
   return (

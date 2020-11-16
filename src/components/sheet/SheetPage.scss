@@ -1,12 +1,8 @@
-@import '../variables';
+@import '../../variables';
 
 .sheet-page {
   width: 80%;
   margin: 0 auto;
-
-  .music-sheet {
-    height: 300px;
-  }
 
   svg {
     display: block;
