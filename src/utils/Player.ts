@@ -13,16 +13,21 @@ export default class Player {
     this.play = true;
   }
 
-  playNote = (frequency: number, noteLength: number) => {
-    var osc = this.audioContext.createOscillator();
-    var gainNode = this.audioContext.createGain();
-    gainNode.gain.value = 0.5;
-    gainNode.connect(this.audioContext.destination)
-    osc.connect(gainNode);
-    osc.frequency.value = frequency;
-    this.currentTime = this.audioContext.currentTime;
-    osc.start(this.currentTime);
-    osc.stop(this.currentTime + noteLength);
+  playNote = (frequency: number, noteLength: number): Promise<void> => {
+    return new Promise(resolve => {
+      var osc = this.audioContext.createOscillator();
+      var gainNode = this.audioContext.createGain();
+      gainNode.gain.value = 0.5;
+      gainNode.connect(this.audioContext.destination)
+      osc.connect(gainNode);
+      osc.frequency.value = frequency;
+      this.currentTime = this.audioContext.currentTime;
+      osc.start(this.currentTime);
+      osc.stop(this.currentTime + noteLength);
+      setTimeout(() => {
+        resolve();
+      }, 1100 * noteLength);
+    });
   }
 
   isPlaying = () => {

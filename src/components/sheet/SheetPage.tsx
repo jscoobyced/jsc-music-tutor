@@ -1,4 +1,5 @@
 import React from 'react';
+import AudioRecorder from '../../utils/Recorder';
 import Player from '../../utils/Player';
 import { generateNotes } from '../notes/RandomNotesGenerator';
 import { Sheet } from './Sheet';
@@ -19,12 +20,25 @@ export const SheetPage = () => {
 
   const verifyNote = (frequency: number, noteCount: number) => {
     if (frequency > 0 && currentPlayer.isPlaying()) {
-      currentPlayer.playNote(frequency, 1);
-    }
-    if (noteCount < playNotes.length && currentPlayer.isPlaying()) {
-      setTimeout(() => playNext(noteCount + 1), 1000);
-    } else {
-      setIsButtonDisabled(false);
+      currentPlayer.playNote(frequency, 1)
+        .then(() => {
+          if (noteCount < playNotes.length && currentPlayer.isPlaying()) {
+            startRecording()
+              .then(audioRecorder => {
+                setTimeout(() => {
+                  audioRecorder.stop()
+                    .then((audioData) => {
+                      audioData.play()
+                        .then(() => {
+                          playNext(noteCount + 1);
+                        });
+                    })
+                }, 3000);
+              });
+          } else {
+            setIsButtonDisabled(false);
+          }
+        });
     }
   }
 
@@ -68,6 +82,28 @@ export const SheetPage = () => {
     verifyNote(frequency, noteCount);
   }
 
+  const startRecording = () => {
+    let recorder: AudioRecorder = new AudioRecorder();
+    return recorder.initialize()
+      .then(() => {
+        recorder.start();
+        return recorder;
+      });
+  }
+
+  const record = (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    startRecording()
+      .then(audioRecorder => {
+        setTimeout(() => {
+          audioRecorder.stop()
+            .then((audioData) => {
+              audioData.play();
+            })
+        }, 3000);
+      });
+  };
+
   return (
     <div className='sheet-page'>
       Click the 'Start' button to start listening for your audio <sup
@@ -77,6 +113,7 @@ export const SheetPage = () => {
       <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
       <input type='button' value='Start' onClick={startPlay} disabled={isButtonDisabled} />
       <input type='button' value='Stop' onClick={stopPlay} disabled={!isButtonDisabled} />
+      <input type='button' value='Record' onClick={record} />
 
     </div>
   );
