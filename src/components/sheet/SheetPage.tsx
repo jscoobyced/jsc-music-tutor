@@ -24,9 +24,7 @@ export const SheetPage = () => {
       currentPlayer.playNote(frequency, 1)
         .then(() => {
           if (noteCount < playNotes.length && currentPlayer.isPlaying()) {
-            createPromise().then(frequency => {
-              setCurrentFrequency(frequency.toFixed(1));
-            });
+            createPromise();
           } else {
             setIsButtonDisabled(false);
           }
@@ -78,7 +76,23 @@ export const SheetPage = () => {
     let recorder: AudioRecorder = new AudioRecorder();
     return recorder.initialize()
       .then(() => {
-        recorder.start();
+        recorder.start((frequencies) => {
+          let average = 0;
+          if (frequencies.length > 0) {
+            let i = 0;
+            frequencies.forEach(v => {
+              if (i === 0) {
+                // v is frequency
+                average += v;
+              } else {
+                // v is volume
+              }
+              i = 1 - i;
+            });
+            average = average / (frequencies.length / 2);
+          }
+          setCurrentFrequency(average.toFixed(1));
+        });
         return recorder;
       });
   }
@@ -86,37 +100,16 @@ export const SheetPage = () => {
   const record = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
     setCurrentFrequency("");
-    createPromise().then(frequency => {
-      setCurrentFrequency(frequency.toFixed(1));
-    });
+    createPromise();
   };
 
-  const createPromise = (): Promise<number> => {
-    return new Promise(resolve => {
-      startRecording()
-        .then(audioRecorder => {
-          setTimeout(() => {
-            audioRecorder.stop()
-              .then(frequencies => {
-                let average = 0;
-                if (frequencies.length > 0) {
-                  let i = 0;
-                  frequencies.forEach(v => {
-                    if (i === 0) {
-                      // v is frequency
-                      average += v;
-                    } else {
-                      // v is volume
-                    }
-                    i = 1 - i;
-                  });
-                  average = average / (frequencies.length / 2);
-                }
-                resolve(average);
-              });
-          }, 3000);
-        });
-    });
+  const createPromise = () => {
+    startRecording()
+      .then(audioRecorder => {
+        setTimeout(() => {
+          audioRecorder.stop();
+        }, 10000);
+      });
   }
 
   return (

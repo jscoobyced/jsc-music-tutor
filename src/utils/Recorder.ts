@@ -18,7 +18,7 @@ export default class AudioRecorder {
       .then(stream => {
         this.mediaRecorder = new MediaRecorder(stream);
         this.audioContext = new AudioContext({
-          latencyHint: "playback",
+          latencyHint: "interactive",
           sampleRate: 48000
         });
         this.analyserNode = this.audioContext.createAnalyser();
@@ -32,36 +32,36 @@ export default class AudioRecorder {
       });
   }
 
-  start = () => {
-    this.mediaRecorder.start();
+  start = (callBack: (frequencies: number[]) => void) => {
+    this.mediaRecorder.ondataavailable = (event: BlobEvent) => {
+      let dataArray = new Uint8Array(this.analyserNode.frequencyBinCount);
+      this.analyserNode.getByteFrequencyData(dataArray);
+      let max = 0;
+      dataArray.forEach((v, i) => {
+        if (v > max) {
+          max = v;
+        }
+      });
+      dataArray.forEach((v, i) => {
+        if (v > (max * .99)) {
+          const frequency = (i + 1) * this.frequencyStep - this.frequencyStep / 2;
+          this.frequencies.push(frequency);
+          this.frequencies.push(v);
+        }
+      });
+      callBack(this.frequencies);
+    }
+    this.mediaRecorder.start(500);
   }
 
-  stop = (): Promise<number[]> => {
-    return new Promise(resolve => {
-      this.mediaRecorder.onstop = () => {
-        let dataArray = new Uint8Array(this.analyserNode.frequencyBinCount);
-        this.analyserNode.getByteFrequencyData(dataArray);
-        let max = 0;
-        dataArray.forEach((v, i) => {
-          if (v > max) {
-            max = v;
-          }
-        });
-        dataArray.forEach((v, i) => {
-          if (v > (max * .99)) {
-            const frequency = (i + 1) * this.frequencyStep - this.frequencyStep / 2;
-            this.frequencies.push(frequency);
-            this.frequencies.push(v);
-          }
-        });
-        resolve(this.frequencies);
-      };
-      this.mediaRecorder.stop();
+  stop = () => {
+    this.mediaRecorder.onstop = () => {
       this.mediaRecorder.stream.getTracks().forEach(track => {
         if (track.readyState === 'live') {
           track.stop();
         }
       });
-    });
+    };
+    this.mediaRecorder.stop();
   }
 }
