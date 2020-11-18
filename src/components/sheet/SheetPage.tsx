@@ -17,24 +17,16 @@ export const SheetPage = () => {
   const [playNotes, setPlayNotes] = React.useState(populateNotes());
   const [isButtonDisabled, setIsButtonDisabled] = React.useState(false);
   const [currentPlayer] = React.useState(new Player());
+  const [currentFrequency, setCurrentFrequency] = React.useState("");
 
   const verifyNote = (frequency: number, noteCount: number) => {
     if (frequency > 0 && currentPlayer.isPlaying()) {
       currentPlayer.playNote(frequency, 1)
         .then(() => {
           if (noteCount < playNotes.length && currentPlayer.isPlaying()) {
-            startRecording()
-              .then(audioRecorder => {
-                setTimeout(() => {
-                  audioRecorder.stop()
-                    .then((audioData) => {
-                      audioData.play()
-                        .then(() => {
-                          playNext(noteCount + 1);
-                        });
-                    })
-                }, 3000);
-              });
+            createPromise().then(frequency => {
+              setCurrentFrequency(frequency.toFixed(1));
+            });
           } else {
             setIsButtonDisabled(false);
           }
@@ -93,16 +85,39 @@ export const SheetPage = () => {
 
   const record = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    startRecording()
-      .then(audioRecorder => {
-        setTimeout(() => {
-          audioRecorder.stop()
-            .then((audioData) => {
-              audioData.play();
-            })
-        }, 3000);
-      });
+    setCurrentFrequency("");
+    createPromise().then(frequency => {
+      setCurrentFrequency(frequency.toFixed(1));
+    });
   };
+
+  const createPromise = (): Promise<number> => {
+    return new Promise(resolve => {
+      startRecording()
+        .then(audioRecorder => {
+          setTimeout(() => {
+            audioRecorder.stop()
+              .then(frequencies => {
+                let average = 0;
+                if (frequencies.length > 0) {
+                  let i = 0;
+                  frequencies.forEach(v => {
+                    if (i === 0) {
+                      // v is frequency
+                      average += v;
+                    } else {
+                      // v is volume
+                    }
+                    i = 1 - i;
+                  });
+                  average = average / (frequencies.length / 2);
+                }
+                resolve(average);
+              });
+          }, 3000);
+        });
+    });
+  }
 
   return (
     <div className='sheet-page'>
@@ -110,6 +125,7 @@ export const SheetPage = () => {
         className='tooltip-info'
         title='You will have to accept the permissions to capture audio.'>(?)</sup> then play the notes as they display.
       <Sheet playNotes={playNotes} />
+      <div>Current frequency: {currentFrequency}.</div>
       <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
       <input type='button' value='Start' onClick={startPlay} disabled={isButtonDisabled} />
       <input type='button' value='Stop' onClick={stopPlay} disabled={!isButtonDisabled} />
