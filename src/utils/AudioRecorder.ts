@@ -82,7 +82,7 @@ export default class AudioRecorder {
    * Convert an index to a frequency approximation
    * @param index the index in the array of data captured by `getByteFrequencyData`
    */
-  public getFrequency = (index: number) => (index + 1) * this.frequencyStep - this.frequencyStep / 2;
+  public getFrequency = (index: number) => Math.round((index + 1) * this.frequencyStep - this.frequencyStep / 2);
 
   /**
    * Start recording. Will do nothing if not initialized or already recording.

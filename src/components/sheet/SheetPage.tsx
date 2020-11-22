@@ -1,5 +1,5 @@
 import React from 'react';
-import { NoteConstant, NoteData } from '../notes/NoteConstants';
+import { NoteConstant, NoteData, SimpleNote } from '../notes/NoteConstants';
 import { generateNotes } from '../notes/RandomNotesGenerator';
 import { Sheet } from './Sheet';
 import SheetHandler from './SheetHandler';
@@ -13,24 +13,37 @@ export const SheetPage = (props: {
   const spaceX = 30;
   const muteColor = 'black';
   const playColor = 'green';
+  const threshold = 25;
 
   const populateNotes = () => generateNotes(startX, spaceX, muteColor);
 
   const [playNotes, setPlayNotes] = React.useState(populateNotes());
   const [isButtonDisabled, setIsButtonDisabled] = React.useState(false);
+  const [currentNote, setCurrentNote] = React.useState("");
 
-  const updateFrequencies = (frequencies: number[]) => {
-    //console.log(frequencies);
+  const updateFrequencies = (frequency: number, frequencies: number[]) => {
+    let noteFound = false;
+    frequencies.forEach(currentFrequency => {
+      if (Math.abs(frequency - currentFrequency) < threshold) {
+        noteFound = true;
+      }
+    })
+    return noteFound;
+  }
+
+  const onPlay = (note: SimpleNote) => {
+    setCurrentNote((note.n && note.n) || "-");
   }
 
   const playComplete = () => {
     props.sheetHandler.stopRecordAndPlay();
     setIsButtonDisabled(false);
+    setCurrentNote("");
   }
 
   const startPlay = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    props.sheetHandler.initialize(updateFrequencies, playComplete)
+    props.sheetHandler.initialize(updateFrequencies, playComplete, onPlay)
       .then(() => {
         setIsButtonDisabled(true);
         props.sheetHandler.startPlayAndRecord(playNotes, setPlayNotes, muteColor, playColor);
@@ -69,7 +82,7 @@ export const SheetPage = (props: {
         className='tooltip-info'
         title='You will have to accept the permissions to capture audio.'>(?)</sup> then play the notes as they display.
       <Sheet playNotes={playNotes} />
-      <div>Current frequency: <span id='frequency'></span>.</div>
+      <div>Current note: {currentNote}.</div>
       <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
       <input type='button' value='Start' onClick={startPlay} disabled={isButtonDisabled} />
       <input type='button' value='Stop' onClick={stopPlay} disabled={!isButtonDisabled} />

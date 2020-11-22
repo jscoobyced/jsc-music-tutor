@@ -1,6 +1,6 @@
 import AudioRecorder from '../../utils/AudioRecorder';
 import Player from '../../utils/Player';
-import { NoteData } from '../notes/NoteConstants';
+import { NoteConstant, NoteData, SimpleNote } from '../notes/NoteConstants';
 
 export default class SheetHandler {
   private player = new Player();
@@ -9,18 +9,24 @@ export default class SheetHandler {
   private muteColor = '';
   private playColor = '';
   private updateNotes: (playNotes: NoteData[]) => void = () => { };
-  private updateFrequencies: (frequencies: number[]) => void = () => { };
+  private updateFrequencies: (frequency: number, frequencies: number[]) => boolean = () => true;
+  private onPlay: (note: SimpleNote) => void = () => { };
   private playComplete: () => void = () => { };
   private currentNote = 0;
+  private currentFrequency = 0;
+  private ready = false;
 
-  public initialize = (updateFrequencies?: (frequencies: number[]) => void,
-    playComplete?: () => void) => {
+  public initialize = (updateFrequencies?: (frequency: number, frequencies: number[]) => boolean,
+    playComplete?: () => void,
+    onPlay?: (note: SimpleNote) => void) => {
     return new Promise(resolve => {
       this.player.initialize();
       this.recorder.initialize({}, this.onData)
         .then(() => {
-          this.updateFrequencies = (updateFrequencies && updateFrequencies) || (() => { });
+          this.updateFrequencies = (updateFrequencies && updateFrequencies) || (() => true);
           this.playComplete = (playComplete && playComplete) || (() => { });
+          this.onPlay = (onPlay && onPlay) || (() => { });
+          this.ready = false;
           resolve();
         });
     });
@@ -46,36 +52,47 @@ export default class SheetHandler {
   }
 
   public playNext = () => {
-    let frequency = 0;
+    this.ready = false;
+    if (this.currentNote >= this.playNotes.length) {
+      this.playComplete();
+      return;
+    }
+    this.currentFrequency = 0;
+    let notePlaying:SimpleNote = NoteConstant.None;
     const newNotes = this.playNotes.map((note, index) => {
       if (index === this.currentNote) {
-        frequency = note.frequency !== undefined ? note.frequency : 0;
+        notePlaying = {
+          f: (note.frequency && note.frequency) || 0,
+          y: (note.cY && note.cY) || 0,
+          n: (note.name && note.name) || ""
+        };
+        this.currentFrequency = note.frequency !== undefined ? note.frequency : 0;
         return {
           cX: note.cX,
           cY: note.cY,
           color: this.playColor,
+          name: note.name,
           frequency: note.frequency
         }
       } else return {
         cX: note.cX,
         cY: note.cY,
         color: this.muteColor,
+        name: note.name,
         frequency: note.frequency
       }
     });
     this.updateNotes(newNotes);
-    this.player.playNote(frequency, 1)
+    notePlaying && this.onPlay(notePlaying);
+    this.player.playNote(this.currentFrequency, 1)
       .then(() => {
-        if (this.playNotes.length > this.currentNote + 1) {
-          this.currentNote = this.currentNote + 1;
-          this.playNext();
-        }
-        else
-          this.playComplete();
+        this.ready = true;
+        this.currentNote = this.currentNote + 1;
       });
   }
 
   private onData = (data: Uint8Array) => {
+    if (!this.ready) return;
     let max = 0;
     data.forEach((volume) => {
       if (volume > max) {
@@ -88,6 +105,9 @@ export default class SheetHandler {
         frequencies.push(this.recorder.getFrequency(index));
       }
     });
-    this.updateFrequencies(frequencies);
+    const noteFound = this.updateFrequencies(this.currentFrequency, frequencies);
+    if (noteFound && this.ready) {
+      this.playNext();
+    }
   }
 }
