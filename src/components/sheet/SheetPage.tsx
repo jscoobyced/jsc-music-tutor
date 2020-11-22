@@ -78,9 +78,9 @@ export const SheetPage = (props: {
 
   return (
     <div className='sheet-page'>
-      Click the 'Start' button to start listening for your audio <sup
-        className='tooltip-info'
-        title='You will have to accept the permissions to capture audio.'>(?)</sup> then play the notes as they display.
+      Click the 'Start' button to have the first note play and record your instrument on the microphone. You will have to accept the permissions
+      to capture audio the first time. The next note will play once you have played the correct note.
+      <br /><br /><i>You need to use a headphone to listen to the audio otherwise the microphone will hear the note and move to the next note.</i>
       <Sheet playNotes={playNotes} />
       <div>Current note: {currentNote}.</div>
       <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
