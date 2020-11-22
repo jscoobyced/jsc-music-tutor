@@ -9,6 +9,22 @@ export default class SheetHandler {
   private muteColor = '';
   private playColor = '';
   private updateNotes: (playNotes: NoteData[]) => void = () => { };
+  private updateFrequencies: (frequencies: number[]) => void = () => { };
+  private playComplete: () => void = () => { };
+  private currentNote = 0;
+
+  public initialize = (updateFrequencies?: (frequencies: number[]) => void,
+    playComplete?: () => void) => {
+    return new Promise(resolve => {
+      this.player.initialize();
+      this.recorder.initialize({}, this.onData)
+        .then(() => {
+          this.updateFrequencies = (updateFrequencies && updateFrequencies) || (() => { });
+          this.playComplete = (playComplete && playComplete) || (() => { });
+          resolve();
+        });
+    });
+  }
 
   public startPlayAndRecord = (playNotes: NoteData[],
     updateNotes?: (playNotes: NoteData[]) => void,
@@ -18,26 +34,21 @@ export default class SheetHandler {
     this.updateNotes = (updateNotes && updateNotes) || (() => { });
     this.playColor = (playColor && playColor) || 'black';
     this.muteColor = (muteColor && muteColor) || 'green';
-    this.player.initialize();
-    this.recorder.initialize();
-    this.playNext(0);
+    this.currentNote = 0;
+    this.player.start();
+    this.playNext();
+    this.recorder.start();
   }
 
   public stopRecordAndPlay = () => {
     this.player.stopPlaying();
+    this.recorder.stop();
   }
 
-  public startRecording = (frequency: number) => {
-    return this.recorder.initialize()
-      .then(() => {
-        this.recorder.start();
-      });
-  }
-
-  public playNext = (noteCount: number) => {
+  public playNext = () => {
     let frequency = 0;
     const newNotes = this.playNotes.map((note, index) => {
-      if (index === noteCount) {
+      if (index === this.currentNote) {
         frequency = note.frequency !== undefined ? note.frequency : 0;
         return {
           cX: note.cX,
@@ -53,7 +64,30 @@ export default class SheetHandler {
       }
     });
     this.updateNotes(newNotes);
-    this.player.playNote(frequency, 1);
-    //this.startRecording(frequency);
+    this.player.playNote(frequency, 1)
+      .then(() => {
+        if (this.playNotes.length > this.currentNote + 1) {
+          this.currentNote = this.currentNote + 1;
+          this.playNext();
+        }
+        else
+          this.playComplete();
+      });
+  }
+
+  private onData = (data: Uint8Array) => {
+    let max = 0;
+    data.forEach((volume) => {
+      if (volume > max) {
+        max = volume;
+      }
+    });
+    let frequencies: number[] = [];
+    data.forEach((volume, index) => {
+      if (volume > (max * .99)) {
+        frequencies.push(this.recorder.getFrequency(index));
+      }
+    });
+    this.updateFrequencies(frequencies);
   }
 }

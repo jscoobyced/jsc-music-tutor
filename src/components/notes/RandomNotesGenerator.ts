@@ -4,7 +4,7 @@ export const generateNotes = (startX: number, spaceX: number, color: string) => 
   const notes: NoteData[] = [];
   const all = Notes5Constant.concat(Notes6Constant);
   let space = -10;
-  for (let i = 0; i < 16; i++) {
+  for (let i = 0; i < 4; i++) {
     if (i % 4 === 0) {
       space += 10;
     }

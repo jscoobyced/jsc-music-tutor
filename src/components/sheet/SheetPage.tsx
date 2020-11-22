@@ -1,4 +1,5 @@
 import React from 'react';
+import { NoteConstant, NoteData } from '../notes/NoteConstants';
 import { generateNotes } from '../notes/RandomNotesGenerator';
 import { Sheet } from './Sheet';
 import SheetHandler from './SheetHandler';
@@ -11,17 +12,29 @@ export const SheetPage = (props: {
   const startX = 80;
   const spaceX = 30;
   const muteColor = 'black';
-  const playColor = 'red';
+  const playColor = 'green';
 
   const populateNotes = () => generateNotes(startX, spaceX, muteColor);
 
   const [playNotes, setPlayNotes] = React.useState(populateNotes());
   const [isButtonDisabled, setIsButtonDisabled] = React.useState(false);
 
+  const updateFrequencies = (frequencies: number[]) => {
+    //console.log(frequencies);
+  }
+
+  const playComplete = () => {
+    props.sheetHandler.stopRecordAndPlay();
+    setIsButtonDisabled(false);
+  }
+
   const startPlay = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    setIsButtonDisabled(true);
-    props.sheetHandler.startPlayAndRecord(playNotes, setPlayNotes, muteColor, playColor);
+    props.sheetHandler.initialize(updateFrequencies, playComplete)
+      .then(() => {
+        setIsButtonDisabled(true);
+        props.sheetHandler.startPlayAndRecord(playNotes, setPlayNotes, muteColor, playColor);
+      });
   }
 
   const resetNotes = (event: React.MouseEvent<HTMLElement>) => {
@@ -32,15 +45,22 @@ export const SheetPage = (props: {
 
   const stopPlay = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    props.sheetHandler.stopRecordAndPlay();
-    setIsButtonDisabled(false);
+    playComplete();
   }
-
-
 
   const record = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    props.sheetHandler.startRecording(440);
+    const noteData: NoteData = {
+      cX: 100,
+      cY: NoteConstant.La5.y,
+      color: 'green',
+      frequency: NoteConstant.La5.f
+    }
+    props.sheetHandler.initialize(updateFrequencies, playComplete)
+      .then(() => {
+        setIsButtonDisabled(true);
+        props.sheetHandler.startPlayAndRecord([noteData], setPlayNotes, muteColor, playColor);
+      });
   };
 
   return (

@@ -35,7 +35,6 @@ export default class AudioRecorder {
    * @param ondata Optional function to be called when data is available
    */
   initialize = (options?: AudioRecorderOptions, ondata?: (data: Uint8Array) => void) => {
-    if (this.isInitialized) return new Promise(() => { });
     return navigator.mediaDevices.getUserMedia({ audio: true })
       .then(stream => {
         // Setup Web Audio API objects
@@ -68,6 +67,7 @@ export default class AudioRecorder {
           this.ondata && this.ondata(dataArray);
         }
         this.mediaRecorder.onstop = () => {
+          this.isRecording = false;
           this.mediaRecorder.stream.getTracks().forEach(track => {
             if (track.readyState === 'live') {
               track.stop();
@@ -79,13 +79,24 @@ export default class AudioRecorder {
   }
 
   /**
+   * Convert an index to a frequency approximation
+   * @param index the index in the array of data captured by `getByteFrequencyData`
+   */
+  public getFrequency = (index: number) => (index + 1) * this.frequencyStep - this.frequencyStep / 2;
+
+  /**
    * Start recording. Will do nothing if not initialized or already recording.
    * @param sample The sample size to send to the `ondata` function. Default
    * will send at the end of the recording.
    */
   start = (sample = 0) => {
     if (this.isInitialized && !this.isRecording) {
-      this.mediaRecorder.start(sample);
+      this.isRecording = true;
+      try {
+        this.mediaRecorder.start(sample);
+      } catch (e) {
+        console.log(e);
+      }
     }
   }
 
