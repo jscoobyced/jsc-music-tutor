@@ -3,7 +3,11 @@
   max-width: 90%;
   margin: 0 auto;
 
-  header {
+  header, footer {
     text-align: center;
+  }
+
+  footer {
+    margin-top: 20px;
   }
 }

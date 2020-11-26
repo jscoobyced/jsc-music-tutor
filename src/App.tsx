@@ -10,6 +10,7 @@ export const App = () => {
       <main>
         <SheetPage sheetHandler={new SheetHandler()} />
       </main>
+      <footer>Copyright Cédric Rochefolle</footer>
     </div>
   );
 }
