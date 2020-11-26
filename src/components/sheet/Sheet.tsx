@@ -1,6 +1,6 @@
 import React from 'react';
 import { Note } from '../notes/Note';
-import { NoteData } from '../notes/NoteConstants';
+import { NoteData } from '../../utils/NoteConstants';
 
 export const Sheet = (props: {
   playNotes: NoteData[]

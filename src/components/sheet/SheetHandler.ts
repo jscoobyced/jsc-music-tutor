@@ -1,6 +1,6 @@
 import AudioRecorder from '../../utils/AudioRecorder';
 import Player from '../../utils/Player';
-import { NoteConstant, NoteData, SimpleNote } from '../notes/NoteConstants';
+import { NoteConstant, NoteData, SimpleNote } from '../../utils/NoteConstants';
 
 export default class SheetHandler {
   private player = new Player();
@@ -9,21 +9,21 @@ export default class SheetHandler {
   private muteColor = '';
   private playColor = '';
   private updateNotes: (playNotes: NoteData[]) => void = () => { };
-  private updateFrequencies: (frequency: number, frequencies: number[]) => boolean = () => true;
+  private updateNote: (expectedNote: string, currentNote: string) => boolean = () => true;
   private onPlay: (note: SimpleNote) => void = () => { };
   private playComplete: () => void = () => { };
   private currentNote = 0;
   private currentFrequency = 0;
   private ready = false;
 
-  public initialize = (updateFrequencies?: (frequency: number, frequencies: number[]) => boolean,
+  public initialize = (updateNotes?: (expectedNote: string, currentNote: string) => boolean,
     playComplete?: () => void,
     onPlay?: (note: SimpleNote) => void) => {
     return new Promise(resolve => {
       this.player.initialize();
-      this.recorder.initialize({}, this.onData)
+      this.recorder.initialize(this.onData)
         .then(() => {
-          this.updateFrequencies = (updateFrequencies && updateFrequencies) || (() => true);
+          this.updateNote = (updateNotes && updateNotes) || (() => true);
           this.playComplete = (playComplete && playComplete) || (() => { });
           this.onPlay = (onPlay && onPlay) || (() => { });
           this.ready = false;
@@ -58,7 +58,7 @@ export default class SheetHandler {
       return;
     }
     this.currentFrequency = 0;
-    let notePlaying:SimpleNote = NoteConstant.None;
+    let notePlaying: SimpleNote = NoteConstant.None;
     const newNotes = this.playNotes.map((note, index) => {
       if (index === this.currentNote) {
         notePlaying = {
@@ -91,21 +91,10 @@ export default class SheetHandler {
       });
   }
 
-  private onData = (data: Uint8Array) => {
-    if (!this.ready) return;
-    let max = 0;
-    data.forEach((volume) => {
-      if (volume > max) {
-        max = volume;
-      }
-    });
-    let frequencies: number[] = [];
-    data.forEach((volume, index) => {
-      if (volume > (max * .99)) {
-        frequencies.push(this.recorder.getFrequency(index));
-      }
-    });
-    const noteFound = this.updateFrequencies(this.currentFrequency, frequencies);
+  private onData = (actualNote: string) => {
+    if (!this.ready || this.currentNote > this.playNotes.length) return;
+    let expectedNote = (this.playNotes[this.currentNote - 1].name ?? this.playNotes[this.currentNote - 1].name) || "";
+    const noteFound = this.updateNote(expectedNote, actualNote);
     if (noteFound && this.ready) {
       this.playNext();
     }

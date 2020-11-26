@@ -1,8 +1,8 @@
-import { NoteData, Notes5Constant, Notes6Constant } from './NoteConstants';
+import { NoteData, Notes2Constant, Notes3Constant, Notes4Constant } from '../../utils/NoteConstants';
 
 export const generateNotes = (startX: number, spaceX: number, color: string) => {
   const notes: NoteData[] = [];
-  const all = Notes5Constant.concat(Notes6Constant);
+  const all = Notes3Constant.concat(Notes4Constant).concat(Notes2Constant);
   let space = -10;
   for (let i = 0; i < 16; i++) {
     if (i % 4 === 0) {

@@ -1,5 +1,5 @@
 import React from 'react';
-import { NoteData } from './NoteConstants';
+import { NoteData } from '../../utils/NoteConstants';
 
 export const Note = (props: {
   noteData: NoteData,
