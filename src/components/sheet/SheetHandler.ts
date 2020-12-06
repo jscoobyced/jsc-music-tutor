@@ -86,8 +86,10 @@ export default class SheetHandler {
     notePlaying && this.onPlay(notePlaying);
     this.player.playNote(this.currentFrequency, 1)
       .then(() => {
-        this.ready = true;
-        this.currentNote = this.currentNote + 1;
+        setTimeout(() => {
+          this.ready = true;
+          this.currentNote = this.currentNote + 1;
+        }, 200);
       });
   }
 

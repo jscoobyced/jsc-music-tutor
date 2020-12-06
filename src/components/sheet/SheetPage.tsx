@@ -20,6 +20,7 @@ export const SheetPage = (props: {
   const [isButtonDisabled, setIsButtonDisabled] = React.useState(false);
   const [currentNote, setCurrentNote] = React.useState("");
   const [playedNote, setPlayedNote] = React.useState("");
+  const [congratulations, setCongratulations] = React.useState("");
 
   const updateNote = (expectedNote: string, currentNote: string) => {
     setPlayedNote(currentNote);
@@ -34,6 +35,9 @@ export const SheetPage = (props: {
     props.sheetHandler.stopRecordAndPlay();
     setIsButtonDisabled(false);
     setCurrentNote("");
+    setPlayedNote("");
+    setPlayNotes(playNotes);
+    setCongratulations('Well done!');
   }
 
   const startPlay = (event: React.MouseEvent<HTMLElement>) => {
@@ -77,12 +81,15 @@ export const SheetPage = (props: {
       to capture audio the first time. The next note will play once you have played the correct note.
       <br /><br /><i>Be mindeful of surrounding noise. I recommend using a microphone for the guitar.</i>
       <Sheet playNotes={playNotes} />
-      <div>Current note: {currentNote}</div>
-      <div>Played note: {playedNote}</div>
-      <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
-      <input type='button' value='Start' onClick={startPlay} disabled={isButtonDisabled} />
-      <input type='button' value='Stop' onClick={stopPlay} disabled={!isButtonDisabled} />
-      <input type='button' value='Record' onClick={record} />
+      <div className='play-complete'>{congratulations}</div>
+      <div className='display-notes'>Current note: {currentNote}</div>
+      <div className='display-notes'>Played note: {playedNote}</div>
+      <div className='action-buttons'>
+        <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
+        <input type='button' value='Start' onClick={startPlay} disabled={isButtonDisabled} />
+        <input type='button' value='Stop' onClick={stopPlay} disabled={!isButtonDisabled} />
+        <input type='button' value='Record' onClick={record} />
+      </div>
 
     </div>
   );

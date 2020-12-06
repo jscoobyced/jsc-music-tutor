@@ -20,4 +20,17 @@
     margin-top: 10px;
     ;
   }
+
+  .display-notes {
+    width: 200px;
+    display: inline-block;
+  }
+
+  .play-complete {
+    width: 30%;
+    min-height: 40px;;
+    margin: 0 auto;
+    color: $success;
+    font-size: $font-size-bigger;
+  }
 }

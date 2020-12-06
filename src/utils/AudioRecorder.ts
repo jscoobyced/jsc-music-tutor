@@ -40,7 +40,7 @@ export default class AudioRecorder {
     this.ondata = ondata;
     return navigator.mediaDevices.getUserMedia({
       audio: {
-        noiseSuppression: false,
+        noiseSuppression: true,
         echoCancellation: true
       }
     })
