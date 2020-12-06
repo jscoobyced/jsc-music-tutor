@@ -31,17 +31,20 @@ export const SheetPage = (props: {
     setCurrentNote((note.n && note.n) || "-");
   }
 
-  const playComplete = () => {
+  const playComplete = (isComplete: boolean) => {
     props.sheetHandler.stopRecordAndPlay();
     setIsButtonDisabled(false);
     setCurrentNote("");
     setPlayedNote("");
     setPlayNotes(playNotes);
-    setCongratulations('Well done!');
+    if (isComplete) {
+      setCongratulations('Well done!');
+    }
   }
 
   const startPlay = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
+    setCongratulations('');
     props.sheetHandler.initialize(updateNote, playComplete, onPlay)
       .then(() => {
         setIsButtonDisabled(true);
@@ -57,7 +60,7 @@ export const SheetPage = (props: {
 
   const stopPlay = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    playComplete();
+    playComplete(true);
   }
 
   const record = (event: React.MouseEvent<HTMLElement>) => {

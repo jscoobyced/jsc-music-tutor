@@ -11,13 +11,13 @@ export default class SheetHandler {
   private updateNotes: (playNotes: NoteData[]) => void = () => { };
   private updateNote: (expectedNote: string, currentNote: string) => boolean = () => true;
   private onPlay: (note: SimpleNote) => void = () => { };
-  private playComplete: () => void = () => { };
+  private playComplete: (isComplete: boolean) => void = (isComplete) => { };
   private currentNote = 0;
   private currentFrequency = 0;
   private ready = false;
 
   public initialize = (updateNotes?: (expectedNote: string, currentNote: string) => boolean,
-    playComplete?: () => void,
+    playComplete?: (isComplete: boolean) => void,
     onPlay?: (note: SimpleNote) => void) => {
     return new Promise(resolve => {
       this.player.initialize();
@@ -54,7 +54,7 @@ export default class SheetHandler {
   public playNext = () => {
     this.ready = false;
     if (this.currentNote >= this.playNotes.length) {
-      this.playComplete();
+      this.playComplete(true);
       return;
     }
     this.currentFrequency = 0;
