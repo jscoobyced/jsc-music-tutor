@@ -17,7 +17,8 @@ export const Sheet = (props: {
       const noteData = {
         rX, rY,
         cX: note.cX, cY: note.cY,
-        color: note.color
+        color: note.color,
+        duration: note.duration
       }
       return <Note key={'note-' + index} noteData={noteData} lineSpace={lineSpace}
         bY1={firstLine} bY2={firstLine + (numberOfLines - 1) * lineSpace} />
@@ -25,18 +26,51 @@ export const Sheet = (props: {
   }
 
   const generateHorizontalLines = () => {
+    let step = 100;
     let lines = [];
-    for (let i = 0; i < numberOfLines; i++) {
-      lines.push(<line key={'line-' + i} x1='10' y1={firstLine + lineSpace * i}
-        x2='580' y2={firstLine + lineSpace * i}
-        stroke='rgb(0,0,0)' strokeWidth='1' />);
+    for (let j = 0; j < Math.ceil(props.playNotes.length / 16); j++) {
+      for (let i = 0; i < numberOfLines; i++) {
+        lines.push(<line key={'line-h-' + j + '-' + i}
+          x1='10' y1={firstLine + lineSpace * i + step * j}
+          x2='580' y2={firstLine + lineSpace * i + step * j}
+          stroke='rgb(0,0,0)' strokeWidth='1' />);
+      }
+
     }
     return lines;
   }
 
+  const generateVerticalLines = () => {
+    let step = 100;
+    let base = 50;
+    let lines: JSX.Element[] = [];
+    for (let i = 0; i < Math.ceil(props.playNotes.length / 16); i++) {
+      lines = lines.concat(generateYVerticalLines(base + step * i, step * i));
+    }
+    return lines;
+  }
+
+  const generateYVerticalLines = (cY: number, step: number) => {
+    let lines = [];
+    lines.push(<line key={'line-v-' + cY + '-' + 0}
+      x1='11' y1={step + 50} x2='11' y2={step + 90}
+      stroke='rgb(0,0,0)' strokeWidth='2' />);
+    let start = 0;
+    for (let i = 0; i < 4; i++) {
+      lines.push(<line key={'line-v-' + cY + '-' + (i + 1)}
+        x1={190 + i * start + i * 30} y1={cY}
+        x2={190 + i * start + i * 30} y2={cY + 40}
+        stroke='rgb(0,0,0)' strokeWidth='1' />);
+      start = 100;
+    }
+    return lines;
+  }
+
+  const height = 150 + 100 * Math.floor(props.playNotes.length / 16);
+
   return (
     <div className='music-sheet'>
-      <svg height='150' width='600'>
+      <svg height={height} width='600'>
         <g fill='#000'
           transform='matrix(0.00412361,0,0,-0.00541348,23.104083,105.53238)'>
           <path
@@ -45,15 +79,7 @@ export const Sheet = (props: {
         </g>
 
         {generateHorizontalLines()}
-
-        <line x1='11' y1='50' x2='11' y2='90' stroke='rgb(0,0,0)' strokeWidth='2' />
-        <line x1='12' y1='50' x2='12' y2='90' stroke='rgb(0,0,0)' strokeWidth='2' />
-        <line x1='15' y1='50' x2='15' y2='90' stroke='rgb(0,0,0)' strokeWidth='2' />
-
-        <line x1='190' y1='50' x2='190' y2='90' stroke='rgb(0,0,0)' strokeWidth='1' />
-        <line x1='320' y1='50' x2='320' y2='90' stroke='rgb(0,0,0)' strokeWidth='1' />
-        <line x1='450' y1='50' x2='450' y2='90' stroke='rgb(0,0,0)' strokeWidth='1' />
-        <line x1='580' y1='50' x2='580' y2='90' stroke='rgb(0,0,0)' strokeWidth='1' />
+        {generateVerticalLines()}
         {renderAllNotes()}
       </svg>
     </div>

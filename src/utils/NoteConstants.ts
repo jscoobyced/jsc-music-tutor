@@ -2,9 +2,10 @@
 export interface NoteData {
   cX: number;
   cY: number;
+  duration?: number;
+  color: string;
   rX?: number;
   rY?: number;
-  color: string;
   frequency?: number;
   name?: string;
   soundFile?: string;

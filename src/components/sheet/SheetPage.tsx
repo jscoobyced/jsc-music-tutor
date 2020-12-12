@@ -1,9 +1,11 @@
 import React from 'react';
-import { NoteConstant, NoteData, SimpleNote } from '../../utils/NoteConstants';
-import { generateNotes } from '../notes/RandomNotesGenerator';
+import { SimpleNote } from '../../utils/NoteConstants';
+import { generateNotes as generateRandomNotes } from '../notes/RandomNotesGenerator';
+import { generateNotes as generateMaryNotes } from '../notes/MaryLamb';
 import { Sheet } from './Sheet';
 import SheetHandler from './SheetHandler';
 import './SheetPage.scss';
+import { SheetSelector } from './SongSelector';
 
 export const SheetPage = (props: {
   sheetHandler: SheetHandler
@@ -14,12 +16,19 @@ export const SheetPage = (props: {
   const muteColor = 'black';
   const playColor = 'green';
 
-  const populateNotes = () => generateNotes(startX, spaceX, muteColor);
+  const populateNotes = (music: string) => {
+    if (music === 'mary') {
+      return generateMaryNotes(startX, spaceX, muteColor);
+    } else {
+      return generateRandomNotes(startX, spaceX, muteColor);
+    }
+  }
 
-  const [playNotes, setPlayNotes] = React.useState(populateNotes());
+  const [playNotes, setPlayNotes] = React.useState(populateNotes(''));
   const [isButtonDisabled, setIsButtonDisabled] = React.useState(false);
   const [currentNote, setCurrentNote] = React.useState("");
   const [playedNote, setPlayedNote] = React.useState("");
+  const [noteGenerator, setNoteGenerator] = React.useState('random');
   const [congratulations, setCongratulations] = React.useState("");
 
   const updateNote = (expectedNote: string, currentNote: string) => {
@@ -36,6 +45,7 @@ export const SheetPage = (props: {
     setIsButtonDisabled(false);
     setCurrentNote("");
     setPlayedNote("");
+    playNotes.forEach(note => note.color = muteColor);
     setPlayNotes(playNotes);
     if (isComplete) {
       setCongratulations('Well done!');
@@ -54,29 +64,24 @@ export const SheetPage = (props: {
 
   const resetNotes = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
+    updatePartition(noteGenerator);
+  }
+
+  const updatePartition = (music: string) => {
     props.sheetHandler.stopRecordAndPlay();
-    setPlayNotes(populateNotes());
+    setPlayNotes(populateNotes(music));
   }
 
   const stopPlay = (event: React.MouseEvent<HTMLElement>) => {
     event.preventDefault();
-    playComplete(true);
+    playComplete(false);
   }
 
-  const record = (event: React.MouseEvent<HTMLElement>) => {
+  const onChange = (event: React.ChangeEvent<HTMLSelectElement>) => {
     event.preventDefault();
-    const noteData: NoteData = {
-      cX: 100,
-      cY: NoteConstant.La3.y,
-      color: 'green',
-      frequency: NoteConstant.La3.f
-    }
-    props.sheetHandler.initialize(updateNote, playComplete)
-      .then(() => {
-        setIsButtonDisabled(true);
-        props.sheetHandler.startPlayAndRecord([noteData], setPlayNotes, muteColor, playColor);
-      });
-  };
+    setNoteGenerator(event.target.value);
+    updatePartition(event.target.value);
+  }
 
   return (
     <div className='sheet-page'>
@@ -84,6 +89,7 @@ export const SheetPage = (props: {
       to capture audio the first time. The next note will play once you have played the correct note.
       <br /><br /><i>Be mindeful of surrounding noise. I recommend using a microphone for the guitar.</i>
       <Sheet playNotes={playNotes} />
+      <SheetSelector onChange={onChange} />
       <div className='play-complete'>{congratulations}</div>
       <div className='display-notes'>Current note: {currentNote}</div>
       <div className='display-notes'>Played note: {playedNote}</div>
@@ -91,7 +97,6 @@ export const SheetPage = (props: {
         <input type='button' value='New' onClick={resetNotes} disabled={isButtonDisabled} />
         <input type='button' value='Start' onClick={startPlay} disabled={isButtonDisabled} />
         <input type='button' value='Stop' onClick={stopPlay} disabled={!isButtonDisabled} />
-        <input type='button' value='Record' onClick={record} />
       </div>
 
     </div>
