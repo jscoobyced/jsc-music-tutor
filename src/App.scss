@@ -3,8 +3,24 @@
   max-width: 90%;
   margin: 0 auto;
 
-  header, footer {
+  header,
+  footer {
     text-align: center;
+  }
+
+  main {
+    position: relative;
+    overflow: hidden;
+  }
+
+  main::before {
+    content: "";
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    z-index: -1;
+    background: url('./classic-guitar.png') 0 0 repeat;
+    opacity: 0.2;
   }
 
   footer {
